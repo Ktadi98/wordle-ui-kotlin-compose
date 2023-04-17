@@ -1,4 +1,4 @@
-package clases
+package logic.clases
 
 import androidx.compose.ui.graphics.Color
 

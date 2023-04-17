@@ -1,4 +1,4 @@
-package clases
+package logic.clases
 
 class Row(var caselles : Array<Casella>) {
     fun setCasella(index:Int,c: Casella) {

@@ -32,9 +32,10 @@ fun App() {
     val focusRequester = FocusRequester()
 
     var inputText by remember { mutableStateOf("") }
-    var grid by remember { mutableStateOf(List(NUM_ROWS) { List<Casella>(NUM_COLS) { Casella("", Color.Black) } }) }
+    var grid by remember { mutableStateOf(List(NUM_ROWS) { Row(Array<Casella>(NUM_COLS) { Casella("", Color.Black) }) }) }
     var intent by remember { mutableStateOf(0) }
 
+    //TODO cargar palabras (es estado)
 
 
     MaterialTheme {
@@ -46,7 +47,7 @@ fun App() {
             Text(text = "La palabra del día", fontWeight = FontWeight.Bold, fontSize = 25.sp)
             for (row in grid) {
                 Row(Modifier.padding(5.dp)) {
-                    for (casella in row) {
+                    for (casella in row.caselles) {
                         Box(contentAlignment = Alignment.Center) {
                             Card(
                                 shape = RoundedCornerShape(5.dp),
@@ -85,10 +86,17 @@ fun App() {
                 }
             })
             Button(onClick = {
+                var gridCopy = grid.toMutableList()
                 for (i in inputText.indices) {
-                    //grid.get(intent).get(i) = Casella("$i", Color.Black )
+                   gridCopy[intent].setCasella(i, Casella(inputText[i].toString(), Color.Black))
                 }
+                grid = gridCopy.toList()
                 inputText = ""
+                intent++
+                if (intent > 5) {
+
+                    intent = 0
+                }
             }, ){
                 Text("Añadir")
             }

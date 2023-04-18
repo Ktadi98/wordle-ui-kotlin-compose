@@ -114,7 +114,7 @@ fun App() {
                 val event: () -> Unit
                 if (casella.letter != "CA") {
                   event = {
-                    if (inputText.length < wordLength) {
+                    if (inputText.length < wordLength && !stopPlay) {
                       inputText += casella.letter.lowercase()
                       val copy = grid.toMutableList()
                       copy[intent].setCasella(currentLetterPosition, Casella(casella.letter, Color.LightGray))
@@ -124,7 +124,7 @@ fun App() {
                   }
                 } else {
                   event = {
-                    if (inputText.isNotEmpty()) {
+                    if (inputText.isNotEmpty() && !stopPlay) {
                       inputText = inputText.substring(0, inputText.lastIndex)
                       val copy = grid.toMutableList()
                       copy[intent].setCasella(currentLetterPosition - 1, Casella("", Color.White))
@@ -133,21 +133,7 @@ fun App() {
                     }
                   }
                 }
-                Button(
-                  shape = RoundedCornerShape(3.dp),
-                  modifier = Modifier.width(50.dp).height(60.dp).padding(3.dp),
-                  colors = ButtonDefaults.buttonColors(backgroundColor = Color.LightGray),
-                  onClick = event
-                ) {
-                  Text(
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    textAlign = TextAlign.Center,
-                    text = casella.letter,
-                    modifier = Modifier.background(casella.color).size(50.dp).wrapContentHeight()
-                  )
-                }
+                keyBoardKey(event, casella.letter, casella.color)
               }
             }
           }
@@ -164,31 +150,28 @@ fun App() {
       wordInput(inputText, inputWordEvent)
 
       Row {
-        if (!stopPlay && words.isNotEmpty()) {
-          val onClickHandlerCheck = {
-            if (intent < maxTries && !stopPlay && inputText.length == wordLength && words.isNotEmpty()) {
-              val gridCopy = grid.toMutableList()
-              for (i in inputText.indices) {
-                correctLetters = checkWord(gridCopy[intent], inputText, targetWord)
-              }
-              grid = gridCopy.toList()
-              inputText = ""
-              currentLetterPosition = 0
-              intent++
+        val onClickHandlerCheck = {
+          if (intent < maxTries && !stopPlay && inputText.length == wordLength && words.isNotEmpty()) {
+            val gridCopy = grid.toMutableList()
+            for (i in inputText.indices) {
+              correctLetters = checkWord(gridCopy[intent], inputText, targetWord)
+            }
+            grid = gridCopy.toList()
+            inputText = ""
+            currentLetterPosition = 0
+            intent++
 
-              if (intent == maxTries || correctLetters == wordLength) {
-                restartButtonVisible = true
-                stopPlay = true
-              }
-              if (correctLetters == wordLength) {
-                playerWins = true
-                informativeMessage = "Has ganado!"
-              } else if (correctLetters < wordLength && intent == maxTries) {
-                informativeMessage = "Lástima,...La palabra era $targetWord "
-              }
+            if (intent == maxTries || correctLetters == wordLength) {
+              restartButtonVisible = true
+              stopPlay = true
+            }
+            if (correctLetters == wordLength) {
+              playerWins = true
+              informativeMessage = "Has ganado!"
+            } else if (correctLetters < wordLength && intent == maxTries) {
+              informativeMessage = "Lástima,...La palabra era $targetWord "
             }
           }
-          customButton(onClickHandlerCheck, "Comprobar")
         }
         val onClickHandlerRestart = {
           restartButtonVisible = !restartButtonVisible
@@ -204,6 +187,9 @@ fun App() {
           } else {
             ""
           }
+        }
+        if (!stopPlay && words.isNotEmpty()) {
+          customButton(onClickHandlerCheck, "Comprobar")
         }
         if (restartButtonVisible) {
           customButton(onClickHandlerRestart, "Resetear")
@@ -241,39 +227,29 @@ fun grid(grid: List<Row>) {
 }
 
 @Composable
-fun wordInput(inputText: String, inputEvent:(String)-> Unit) {
+fun wordInput(inputText: String, inputEvent: (String) -> Unit) {
   Text(text = "Introduce la palabra")
   TextField(value = inputText, onValueChange = inputEvent)
 }
 
-//@Composable
-//fun keyboard(keyboard: List<Row>, inputText: MutableState<String>, removeLetter: () -> Unit) {
-//  Column {
-//    for (row in keyboard) {
-//      Row(Modifier.padding(2.dp)) {
-//        for (casella in row.caselles) {
-//          Box(contentAlignment = Alignment.CenterStart) {
-//            Button(
-//              shape = RoundedCornerShape(3.dp),
-//              modifier = Modifier.width(50.dp).height(60.dp).padding(3.dp),
-//              colors = ButtonDefaults.buttonColors(backgroundColor = Color.LightGray),
-//              onClick = {}
-//            ) {
-//              Text(
-//                color = Color.Black,
-//                fontWeight = FontWeight.Bold,
-//                fontSize = 15.sp,
-//                textAlign = TextAlign.Center,
-//                text = casella.letter,
-//                modifier = Modifier.background(casella.color).size(50.dp).wrapContentHeight()
-//              )
-//            }
-//          }
-//        }
-//      }
-//    }
-//  }
-//}
+@Composable
+fun keyBoardKey(event: () -> Unit, letter: String, color: Color) {
+  Button(
+    shape = RoundedCornerShape(3.dp),
+    modifier = Modifier.width(50.dp).height(60.dp).padding(3.dp),
+    colors = ButtonDefaults.buttonColors(backgroundColor = Color.LightGray),
+    onClick = event
+  ) {
+    Text(
+      color = Color.Black,
+      fontWeight = FontWeight.Bold,
+      fontSize = 15.sp,
+      textAlign = TextAlign.Center,
+      text = letter,
+      modifier = Modifier.background(color).size(50.dp).wrapContentHeight()
+    )
+  }
+}
 
 @Composable
 fun customButton(onClickHandler: () -> Unit, text: String) {

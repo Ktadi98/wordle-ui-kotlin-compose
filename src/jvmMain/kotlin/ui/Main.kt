@@ -4,11 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,6 +41,56 @@ fun App() {
   var words by remember { mutableStateOf(listOf("arbol", "lunas")) }
   var targetWord by remember { mutableStateOf(getRandomWord(words)) }
   var informativeMessage by remember { mutableStateOf("") }
+  var currentLetterPosition by remember { mutableStateOf(0) }
+  //El keyboard pot ser estat si mirem el joc original.
+  val keyboard by remember {
+    mutableStateOf(
+      listOf(
+        Row(
+          arrayOf
+            (
+            Casella("Q", Color.LightGray),
+            Casella("W", Color.LightGray),
+            Casella("E", Color.LightGray),
+            Casella("R", Color.LightGray),
+            Casella("T", Color.LightGray),
+            Casella("Y", Color.LightGray),
+            Casella("U", Color.LightGray),
+            Casella("I", Color.LightGray),
+            Casella("O", Color.LightGray),
+            Casella("P", Color.LightGray),
+          )
+        ),
+        Row(
+          arrayOf(
+            Casella("A", Color.LightGray),
+            Casella("S", Color.LightGray),
+            Casella("D", Color.LightGray),
+            Casella("F", Color.LightGray),
+            Casella("G", Color.LightGray),
+            Casella("H", Color.LightGray),
+            Casella("J", Color.LightGray),
+            Casella("K", Color.LightGray),
+            Casella("L", Color.LightGray),
+            Casella("Ñ", Color.LightGray),
+          )
+        ),
+        Row(
+          arrayOf(
+            Casella("Z", Color.LightGray),
+            Casella("X", Color.LightGray),
+            Casella("C", Color.LightGray),
+            Casella("V", Color.LightGray),
+            Casella("B", Color.LightGray),
+            Casella("N", Color.LightGray),
+            Casella("M", Color.LightGray),
+            Casella("CA", Color.LightGray)
+          )
+        )
+      )
+    )
+  }
+
 
   MaterialTheme {
 
@@ -55,16 +101,68 @@ fun App() {
     ) {
 
       Text(text = "WORDLE", fontWeight = FontWeight.Bold, fontSize = 25.sp)
-
       Text(text = informativeMessage)
 
       grid(grid)
-      Text(text = "Introduce la palabra")
-      TextField(value = inputText, onValueChange = {
+
+      /*******KEYBOARD*****/
+      Column {
+        for (row in keyboard) {
+          Row(Modifier.padding(2.dp)) {
+            for (casella in row.caselles) {
+              Box(contentAlignment = Alignment.CenterStart) {
+                val event: () -> Unit
+                if (casella.letter != "CA") {
+                  event = {
+                    if (inputText.length < wordLength) {
+                      inputText += casella.letter.lowercase()
+                      val copy = grid.toMutableList()
+                      copy[intent].setCasella(currentLetterPosition, Casella(casella.letter, Color.LightGray))
+                      grid = copy.toList()
+                      if (currentLetterPosition < wordLength) currentLetterPosition++
+                    }
+                  }
+                } else {
+                  event = {
+                    if (inputText.isNotEmpty()) {
+                      inputText = inputText.substring(0, inputText.lastIndex)
+                      val copy = grid.toMutableList()
+                      copy[intent].setCasella(currentLetterPosition - 1, Casella("", Color.White))
+                      grid = copy.toList()
+                      if (currentLetterPosition > 0) currentLetterPosition--
+                    }
+                  }
+                }
+                Button(
+                  shape = RoundedCornerShape(3.dp),
+                  modifier = Modifier.width(50.dp).height(60.dp).padding(3.dp),
+                  colors = ButtonDefaults.buttonColors(backgroundColor = Color.LightGray),
+                  onClick = event
+                ) {
+                  Text(
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Center,
+                    text = casella.letter,
+                    modifier = Modifier.background(casella.color).size(50.dp).wrapContentHeight()
+                  )
+                }
+              }
+            }
+          }
+        }
+      }
+      /*******KEYBOARD*****/
+
+      val inputWordEvent = { it: String ->
         if (it.length <= wordLength) {
           inputText = it.lowercase()
         }
-      })
+      }
+
+      wordInput(inputText, inputWordEvent)
+
       Row {
         if (!stopPlay && words.isNotEmpty()) {
           val onClickHandlerCheck = {
@@ -75,8 +173,9 @@ fun App() {
               }
               grid = gridCopy.toList()
               inputText = ""
+              currentLetterPosition = 0
               intent++
-              println(correctLetters)
+
               if (intent == maxTries || correctLetters == wordLength) {
                 restartButtonVisible = true
                 stopPlay = true
@@ -84,10 +183,12 @@ fun App() {
               if (correctLetters == wordLength) {
                 playerWins = true
                 informativeMessage = "Has ganado!"
+              } else if (correctLetters < wordLength && intent == maxTries) {
+                informativeMessage = "Lástima,...La palabra era $targetWord "
               }
             }
           }
-          checkButton(onClickHandlerCheck, "Comprobar")
+          customButton(onClickHandlerCheck, "Comprobar")
         }
         val onClickHandlerRestart = {
           restartButtonVisible = !restartButtonVisible
@@ -105,7 +206,7 @@ fun App() {
           }
         }
         if (restartButtonVisible) {
-          restartButton(onClickHandlerRestart, "Resetear")
+          customButton(onClickHandlerRestart, "Resetear")
         }
       }
     }
@@ -140,25 +241,55 @@ fun grid(grid: List<Row>) {
 }
 
 @Composable
-fun restartButton(onClickHandler: () -> Unit, text:String) {
-  Button(onClick = onClickHandler
-  ) {
-    Text(text)
-  }
+fun wordInput(inputText: String, inputEvent:(String)-> Unit) {
+  Text(text = "Introduce la palabra")
+  TextField(value = inputText, onValueChange = inputEvent)
 }
+
+//@Composable
+//fun keyboard(keyboard: List<Row>, inputText: MutableState<String>, removeLetter: () -> Unit) {
+//  Column {
+//    for (row in keyboard) {
+//      Row(Modifier.padding(2.dp)) {
+//        for (casella in row.caselles) {
+//          Box(contentAlignment = Alignment.CenterStart) {
+//            Button(
+//              shape = RoundedCornerShape(3.dp),
+//              modifier = Modifier.width(50.dp).height(60.dp).padding(3.dp),
+//              colors = ButtonDefaults.buttonColors(backgroundColor = Color.LightGray),
+//              onClick = {}
+//            ) {
+//              Text(
+//                color = Color.Black,
+//                fontWeight = FontWeight.Bold,
+//                fontSize = 15.sp,
+//                textAlign = TextAlign.Center,
+//                text = casella.letter,
+//                modifier = Modifier.background(casella.color).size(50.dp).wrapContentHeight()
+//              )
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
 
 @Composable
-fun checkButton(onClickHandler: () -> Unit, text:String) {
-  Button(onClick = onClickHandler
+fun customButton(onClickHandler: () -> Unit, text: String) {
+  Button(
+    onClick = onClickHandler
   ) {
     Text(text)
   }
 }
 
-
-
 fun main() = application {
-  Window(state = WindowState(position = WindowPosition(250.dp,10.dp),size = DpSize(1000.dp,1000.dp)),title = "Wordle_TarriasCarlos", onCloseRequest = ::exitApplication) {
+  Window(
+    state = WindowState(position = WindowPosition(250.dp, 10.dp), size = DpSize(1000.dp, 1000.dp)),
+    title = "Wordle_TarriasCarlos",
+    onCloseRequest = ::exitApplication
+  ) {
     App()
   }
 }

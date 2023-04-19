@@ -14,13 +14,19 @@ fun clearGrid(grid: List<Row>): List<Row> {
 }
 
 fun updateWords(words: List<String>, wordToRemove: String): List<String> {
-  var copy = words.toMutableList()
+  val copy = words.toMutableList()
   copy.remove(wordToRemove)
   return copy.toList()
 }
 
 fun getRandomWord(words: List<String>): String {
   return words[words.indices.random()]
+}
+
+fun setGrid(grid:List<Row>, intent:Int, currentLetterPosition:Int,casella: Casella):List<Row>{
+  val copy = grid.toMutableList()
+  copy[intent].setCasella(currentLetterPosition, casella)
+  return copy.toList()
 }
 
 fun checkWord(row: Row, guessWord: String, randomWord: String): Int {

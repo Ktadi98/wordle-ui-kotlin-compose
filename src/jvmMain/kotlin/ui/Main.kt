@@ -23,6 +23,7 @@ import logic.checkWord
 import logic.clearGrid
 import logic.getRandomWord
 import logic.updateWords
+import logic.setGrid
 
 @Composable
 fun App() {
@@ -37,7 +38,7 @@ fun App() {
   var correctLetters by remember { mutableStateOf(0) }
   var restartButtonVisible by remember { mutableStateOf(false) }
   var stopPlay by remember { mutableStateOf(false) }
-  var playerWins by remember { mutableStateOf(false) }
+  //var playerWins by remember { mutableStateOf(false) }
   var words by remember { mutableStateOf(listOf("arbol", "lunas")) }
   var targetWord by remember { mutableStateOf(getRandomWord(words)) }
   var informativeMessage by remember { mutableStateOf("") }
@@ -116,9 +117,10 @@ fun App() {
                   event = {
                     if (inputText.length < wordLength && !stopPlay) {
                       inputText += casella.letter.lowercase()
-                      val copy = grid.toMutableList()
-                      copy[intent].setCasella(currentLetterPosition, Casella(casella.letter, Color.LightGray))
-                      grid = copy.toList()
+//                      val copy = grid.toMutableList()
+//                      copy[intent].setCasella(currentLetterPosition, Casella(casella.letter, Color.LightGray))
+//                      grid = copy.toList()
+                      grid = setGrid(grid, intent, currentLetterPosition, Casella(casella.letter, Color.LightGray))
                       if (currentLetterPosition < wordLength) currentLetterPosition++
                     }
                   }
@@ -126,9 +128,10 @@ fun App() {
                   event = {
                     if (inputText.isNotEmpty() && !stopPlay) {
                       inputText = inputText.substring(0, inputText.lastIndex)
-                      val copy = grid.toMutableList()
-                      copy[intent].setCasella(currentLetterPosition - 1, Casella("", Color.White))
-                      grid = copy.toList()
+//                      val copy = grid.toMutableList()
+//                      copy[intent].setCasella(currentLetterPosition - 1, Casella("", Color.White))
+//                      grid = copy.toList()
+                      grid = setGrid(grid, intent, currentLetterPosition - 1, Casella(casella.letter, Color.White))
                       if (currentLetterPosition > 0) currentLetterPosition--
                     }
                   }
@@ -166,7 +169,7 @@ fun App() {
               stopPlay = true
             }
             if (correctLetters == wordLength) {
-              playerWins = true
+             // playerWins = true
               informativeMessage = "Has ganado!"
             } else if (correctLetters < wordLength && intent == maxTries) {
               informativeMessage = "Lástima,...La palabra era $targetWord "
@@ -177,7 +180,7 @@ fun App() {
           restartButtonVisible = !restartButtonVisible
           intent = 0
           stopPlay = false
-          playerWins = false
+         // playerWins = false
           val copy = grid.toMutableList()
           grid = clearGrid(copy).toList()
           words = updateWords(words, targetWord)
@@ -228,8 +231,8 @@ fun grid(grid: List<Row>) {
 
 @Composable
 fun wordInput(inputText: String, inputEvent: (String) -> Unit) {
-  Text(text = "Introduce la palabra")
-  TextField(value = inputText, onValueChange = inputEvent)
+  //Text(text = "Introduce la palabra")
+  TextField(value = inputText, onValueChange = inputEvent, enabled=false)
 }
 
 @Composable

@@ -83,6 +83,10 @@ fun setGrid(grid: List<Row>, intent: Int, currentLetterPosition: Int, casella: C
     return copy.toList()
 }
 
+fun canPlay(intent:Int, maxTries: Int, stopPlay:Boolean, inputText: String, wordLength: Int, words: List<String>): Boolean {
+    return intent < maxTries && !stopPlay && inputText.length == wordLength && words.isNotEmpty()
+}
+
 fun checkWord(row: Row, guessWord: String, randomWord: String): Int {
     var correctLetters = 0
     val remainingLetters =

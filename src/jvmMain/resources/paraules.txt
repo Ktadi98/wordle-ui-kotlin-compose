@@ -1,0 +1,7 @@
+arbol
+lunas
+coche
+rueda
+gorra
+manta
+sobra

@@ -17,13 +17,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import logic.*
 import logic.clases.Casella
 import logic.clases.Row
-import logic.checkWord
-import logic.clearGrid
-import logic.getRandomWord
-import logic.updateWords
-import logic.setGrid
 
 @Composable
 fun App() {
@@ -43,8 +39,12 @@ fun App() {
   var targetWord by remember { mutableStateOf(getRandomWord(words)) }
   var informativeMessage by remember { mutableStateOf("") }
   var currentLetterPosition by remember { mutableStateOf(0) }
+
+  var coincidentes by remember { mutableStateOf(listOf(""))}
+  var diffs by remember { mutableStateOf(listOf(""))}
+
   //El keyboard pot ser estat si mirem el joc original.
-  val keyboard by remember {
+  var keyboard by remember {
     mutableStateOf(
       listOf(
         Row(
@@ -159,6 +159,12 @@ fun App() {
             for (i in inputText.indices) {
               correctLetters = checkWord(gridCopy[intent], inputText, targetWord)
             }
+            coincidentes += difference(inputText, targetWord)[0]
+            diffs += difference(inputText, targetWord)[1]
+
+            keyboard = changeKeyBoard(keyboard, coincidentes, diffs)
+
+            // Cambiar casillas teclado
             grid = gridCopy.toList()
             inputText = ""
             currentLetterPosition = 0
@@ -182,7 +188,9 @@ fun App() {
           stopPlay = false
          // playerWins = false
           val copy = grid.toMutableList()
+          val copyKeyBoard = keyboard.toMutableList()
           grid = clearGrid(copy).toList()
+          keyboard = clearKeyBoard(copyKeyBoard).toList()
           words = updateWords(words, targetWord)
           if (words.isNotEmpty()) targetWord = getRandomWord(words)
           informativeMessage = if (words.isEmpty()) {
